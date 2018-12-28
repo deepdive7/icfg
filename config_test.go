@@ -1,20 +1,20 @@
-# ICFG
-A simple and easily use config manager.
-> Note: You can use `icfg` freely in your project. It’s always great to mark the `icfg` github address in your project. HaHa~
-### Usage
-Key search priority: flag > config > env
+package icfg_test
 
-#### Set Default key
-```
+import (
+	"testing"
+
+	"github.com/deepdive7/icfg"
+	"github.com/stretchr/testify/assert"
+)
+
+var cfg = icfg.NewConfig()
+
 func TestConfigDefault(t *testing.T) {
 	project := "icfg"
 	icfg.SetDefaultKey("project", &project)
 	assert.Equal(t, project, cfg.String("project"))
 }
-```
 
-#### Flag
-```
 func TestConfigFlag(t *testing.T) {
 	var name = "zt"
 	var age = 21
@@ -35,10 +35,7 @@ func TestConfigFlag(t *testing.T) {
 	assert.Equal(t, id, cfg.Uint64("id"))
 	assert.Equal(t, money, cfg.Float("money"))
 }
-```
 
-#### JSON Config file
-```
 func TestConfigJson(t *testing.T) {
 	cfg.LoadCfg()
 	assert.Equal(t, "./config.json", cfg.String("config"))
@@ -47,19 +44,13 @@ func TestConfigJson(t *testing.T) {
 	assert.Equal(t, "NetworkMock", cfg.String("network.name"))
 	assert.Equal(t, "./plugins/dllplugin/dllplugindemo.so", cfg.String("dll_plugins.dll_plugin_demo.lib_path"))
 }
-```
 
-#### Load Env
-```
 func TestConfigEnv(t *testing.T) {
 	keys := []string{"GOROOT", "GOPATH", "PATH"}
 	cfg.LoadEnv(keys)
 	assert.Equal(t, "/opt/soft/go", cfg.String("GOROOT"))
 }
-```
 
-#### RegExp Match
-```
 func TestConfig_Match(t *testing.T) {
 	pattern := `match.sub_[a-z]*.[a-z]a[a-z]`
 	assert.Equal(t, map[string]int{
@@ -81,21 +72,15 @@ func TestConfig_Match(t *testing.T) {
 	}
 	assert.Equal(t, intExcept, cfg.Match(pattern).IntMap())
 }
-```
 
-#### Dump Config Keys
-Use the original configuration path plus the second-level timestamp as the file name backup. 
-For example: `config_2018-12-28_11:15:48.json`. 
-```
 func TestConfig_Dump(t *testing.T) {
-	if testDump {
+	if false {
 		cfg.LoadCfg()
-		peerName := "IPeer"
+		peerName := "NewPeer"
 		cfg.Set("peer_name", &peerName)
 		assert.Equal(t, nil, cfg.Dump())
 		// Check new config
 		cfg.LoadCfg()
-        assert.Equal(t, peerName, cfg.String("peer_name"))
+		assert.Equal(t, peerName, cfg.String("peer_name"))
 	}
 }
-```
