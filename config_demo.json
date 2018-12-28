@@ -2,13 +2,12 @@
   "host": "127.0.0.1",
   "peer_name": "IPeer",
   "network": {
-    "name": "NetworkMock",
+    "name": "INetwork",
     "listeners": [
       {
         "protocol":"udp",
         "port": "1008",
         "name": "udp_listener"
-
       },
       {
         "protocol":"tcp",
@@ -23,21 +22,9 @@
       }
     ]
   },
-  "active_plugins": {
-    "rpc_plugin":{
-      "args": {
-        "careAll": "false",
-        "requires": []
-      }
-    }
-  },
-  "dll_plugins": {
-    "dll_plugin_demo": {
-      "lib_path": "./plugins/dllplugin/dllplugindemo.so",
-      "args": {
-        "careAll": "true",
-        "requires": []
-      }
+  "A": {
+    "B": {
+      "C": "Boom"
     }
   },
   "int_arr": [0,1,2,3,4,5,6,7,8,9,10,11],
@@ -49,9 +36,7 @@
       "cab": 3
     },
     "submatch": {
-      "a": 1,
-      "b": 2,
-      "c": 3
+      "a": 1
     }
   }
 }
