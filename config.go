@@ -16,9 +16,8 @@ import (
 )
 
 var (
-	CfgPath = "./config.json"
-	flagKV  = map[string]*Element{}
-	envKV   = map[string]*Element{}
+	flagKV = map[string]*Element{}
+	envKV  = map[string]*Element{}
 )
 
 func NewConfig() *Config {
@@ -49,33 +48,28 @@ func Parse() {
 }
 
 func StringVar(name string, value string, usage string) {
-	var v string
-	flagKV[name] = &Element{val: &v}
-	flag.StringVar(&v, name, value, usage)
+	flagKV[name] = &Element{val: &value}
+	flag.StringVar(&value, name, value, usage)
 }
 
 func IntVar(name string, value int, usage string) {
-	var v int
-	flagKV[name] = &Element{val: &v}
-	flag.IntVar(&v, name, value, usage)
+	flagKV[name] = &Element{val: &value}
+	flag.IntVar(&value, name, value, usage)
 }
 
 func Int64Var(name string, value int64, usage string) {
-	var v int64
-	flagKV[name] = &Element{val: &v}
-	flag.Int64Var(&v, name, value, usage)
+	flagKV[name] = &Element{val: &value}
+	flag.Int64Var(&value, name, value, usage)
 }
 
 func Uint64Var(name string, value uint64, usage string) {
-	var v uint64
-	flagKV[name] = &Element{val: &v}
-	flag.Uint64Var(&v, name, value, usage)
+	flagKV[name] = &Element{val: &value}
+	flag.Uint64Var(&value, name, value, usage)
 }
 
 func Float64Var(name string, value float64, usage string) {
-	var v float64
-	flagKV[name] = &Element{val: &v}
-	flag.Float64Var(&v, name, value, usage)
+	flagKV[name] = &Element{val: &value}
+	flag.Float64Var(&value, name, value, usage)
 }
 
 type Element struct {
@@ -338,8 +332,6 @@ func (c *Config) LoadCfg(path ...string) error {
 	switch {
 	case len(path) > 0:
 		cfgPath = path[0]
-	case CfgPath != "":
-		cfgPath = CfgPath
 	case ok && v != nil:
 		cfgPath = v.String()
 	default:
