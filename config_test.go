@@ -76,7 +76,7 @@ func TestConfig_Match(t *testing.T) {
 
 func TestConfig_Dump(t *testing.T) {
 	if false {
-		cfg.LoadCfg("./config.json")
+		cfg.LoadCfg("./config_demo.json")
 		peerName := "NewPeer"
 		cfg.Set("peer_name", &peerName)
 		assert.Equal(t, nil, cfg.Dump())
