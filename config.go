@@ -16,8 +16,9 @@ import (
 )
 
 var (
-	flagKV = map[string]*Element{}
-	envKV  = map[string]*Element{}
+	flagKV     = map[string]*Element{}
+	envKV      = map[string]*Element{}
+	defaultCfg = NewConfig()
 )
 
 func NewConfig() *Config {
@@ -36,6 +37,15 @@ func SetDefaultKey(k string, v interface{}) {
 	envKV[k] = &Element{v}
 }
 
+
+func LoadEnv(keys []string) {
+	for _, k := range keys {
+		v := os.Getenv(k)
+		envKV[k] = &Element{&v}
+	}
+	return
+}
+
 func Parse() {
 	flag.Parse()
 	args := []*Element{}
@@ -45,6 +55,11 @@ func Parse() {
 	}
 	flagKV["args"] = &Element{&args}
 	return
+}
+
+func BoolVar(name string, value bool, usage string) {
+	flagKV[name] = &Element{val: &value}
+	flag.BoolVar(&value, name, value, usage)
 }
 
 func StringVar(name string, value string, usage string) {
@@ -79,6 +94,13 @@ type Element struct {
 func (e *Element) Type() string {
 	r := reflect.TypeOf(e.val)
 	return r.String()
+}
+
+func (e *Element) Bool() bool {
+	if e.Type() == "bool" {
+		return e.val.(bool)
+	}
+	return false
 }
 
 func (e *Element) String() string {
@@ -120,13 +142,13 @@ func (e *Element) IntArray() []int {
 }
 
 func (e *Element) IntMap() map[string]int {
-	v, ok := e.val.(map[string]*Element)
+	v, ok := e.val.(*map[string]interface{})
 	if !ok {
 		return nil
 	}
-	vs := make(map[string]int, len(v))
-	for i, a := range v {
-		vs[i] = a.Int()
+	vs := make(map[string]int, len(*v))
+	for i, a := range *v {
+		vs[i] = a.(*Element).Int()
 	}
 	return vs
 }
@@ -190,13 +212,13 @@ func (e *Element) FloatArray() []float64 {
 }
 
 func (e *Element) FloatMap() map[string]float64 {
-	v, ok := e.val.(map[string]*Element)
+	v, ok := e.val.(*map[string]interface{})
 	if !ok {
 		return nil
 	}
-	vs := make(map[string]float64, len(v))
-	for i, a := range v {
-		vs[i] = a.Float()
+	vs := make(map[string]float64, len(*v))
+	for i, a := range *v {
+		vs[i] = a.(*Element).Float()
 	}
 	return vs
 }
@@ -218,17 +240,22 @@ func (e *Element) StrArray() []string {
 }
 
 func (e *Element) Map() map[string]*Element {
-	return e.val.(map[string]*Element)
+	res := make(map[string]*Element)
+	mi := e.val.(*map[string]interface{})
+	for k,v := range *mi {
+		res[k] = v.(*Element)
+	}
+	return res
 }
 
 func (e *Element) StrMap() map[string]string {
-	v, ok := e.val.(map[string]*Element)
+	v, ok := e.val.(*map[string]interface{})
 	if !ok {
 		return nil
 	}
-	vs := make(map[string]string, len(v))
-	for i, a := range v {
-		vs[i] = a.String()
+	vs := make(map[string]string, len(*v))
+	for i, a := range *v {
+		vs[i] = a.(*Element).String()
 	}
 	return vs
 }
@@ -359,14 +386,6 @@ func (c *Config) LoadCfg(path ...string) error {
 	return nil
 }
 
-func (c *Config) LoadEnv(keys []string) {
-	for _, k := range keys {
-		v := os.Getenv(k)
-		envKV[k] = &Element{&v}
-	}
-	return
-}
-
 // Ele search level flag>config>env
 func (c *Config) Ele(path string) (v *Element, ok bool) {
 	if v, ok = flagKV[path]; ok {
@@ -393,6 +412,14 @@ func (c *Config) Set(path string, value interface{}) {
 		c.jsonStr = s
 	}
 	envKV[path] = e
+}
+
+func (c *Config) Bool(path string) bool {
+	v, ok := c.Ele(path)
+	if !ok {
+		return false
+	}
+	return v.Bool()
 }
 
 func (c *Config) String(path string) string {
@@ -502,7 +529,7 @@ func (c *Config) StrMap(path string) map[string]string {
 
 func (c *Config) Match(pattern string) *Element {
 	re := regexp.MustCompile(pattern)
-	res := make(map[string]*Element)
+	res := make(map[string]interface{})
 	for k, v := range envKV {
 		if re.MatchString(k) {
 			res[k] = v
@@ -518,5 +545,79 @@ func (c *Config) Match(pattern string) *Element {
 			res[k] = v
 		}
 	}
-	return &Element{res}
+	return &Element{&res}
+}
+
+// Global config
+func LoadCfg(path ...string) error {
+	return defaultCfg.LoadCfg(path...)
+}
+
+// Ele search level flag>config>env
+func Ele(path string) (v *Element, ok bool) {
+	return defaultCfg.Ele(path)
+}
+
+func Set(path string, value interface{}) {
+	defaultCfg.Set(path, value)
+}
+
+func Bool(path string) bool {
+	return defaultCfg.Bool(path)
+}
+
+func String(path string) string {
+	return defaultCfg.String(path)
+}
+
+func Int(path string) int {
+	return defaultCfg.Int(path)
+}
+
+func IntArray(path string) []int {
+	return defaultCfg.IntArray(path)
+}
+
+func IntMap(path string) map[string]int {
+	return defaultCfg.IntMap(path)
+}
+
+func Int64(path string) int64 {
+	return defaultCfg.Int64(path)
+}
+
+func Uint64(path string) uint64 {
+	return defaultCfg.Uint64(path)
+}
+
+func Float(path string) float64 {
+	return defaultCfg.Float(path)
+}
+
+func FloatArray(path string) []float64 {
+	return defaultCfg.FloatArray(path)
+}
+
+func FloatMap(path string) map[string]float64 {
+	return defaultCfg.FloatMap(path)
+}
+
+func Array(path string) []*Element {
+	return defaultCfg.Array(path)
+}
+
+func StrArray(path string) []string {
+	return defaultCfg.StrArray(path)
+}
+
+func Map(path string) map[string]*Element {
+	return defaultCfg.Map(path)
+}
+
+func StrMap(path string) map[string]string {
+	return defaultCfg.StrMap(path)
+}
+
+func Match(pattern string) *Element {
+	return defaultCfg.Match(pattern)
 }

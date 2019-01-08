@@ -1,6 +1,7 @@
 package icfg_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/deepdive7/icfg"
@@ -9,6 +10,28 @@ import (
 
 var cfg = icfg.NewConfig()
 
+func TestICFG(t *testing.T) {
+	icfg.StringVar("system", "icfg", "system name")
+	icfg.StringVar("config", "./config_demo.json", "json config path")
+	icfg.LoadEnv([]string{"GOPATH", "GOROOT"})
+	icfg.Parse()
+	cfg := icfg.String("config")
+	icfg.LoadCfg(cfg)
+
+	fmt.Println(icfg.String("system")) // icfg
+	fmt.Println(icfg.String("GOROOT")) // /opt/soft/go
+	fmt.Println(icfg.IntMap("maps.int")) // map[i:1]
+	fmt.Println(icfg.FloatMap("maps.float")) // map[f:0.01]
+	fmt.Println(icfg.StrMap("maps.str")) //map[a:a]
+	fmt.Println(icfg.IntArray("int_arr")) // [0 1 2 3 4 5 6 7 8 9 10 11]
+	fmt.Println(icfg.Int("int_arr.1")) // 1
+
+	pattern := "int_arr.[^1234567]"
+	fmt.Println(icfg.Match(pattern).IntMap()) // map[int_arr.0:0 int_arr.9:9 int_arr.8:8]
+	m := icfg.Map("maps.int")
+	fmt.Println(m["i"].Int())
+}
+
 func TestConfigDefault(t *testing.T) {
 	project := "icfg"
 	icfg.SetDefaultKey("project", &project)
@@ -16,7 +39,7 @@ func TestConfigDefault(t *testing.T) {
 }
 
 func TestConfigFlag(t *testing.T) {
-	var name = "zt"
+	var name = "haha"
 	var age = 21
 	var phone = int64(17877652365)
 	var id uint64 = 192839
@@ -48,7 +71,7 @@ func TestConfigJson(t *testing.T) {
 
 func TestConfigEnv(t *testing.T) {
 	keys := []string{"GOROOT", "GOPATH", "PATH"}
-	cfg.LoadEnv(keys)
+	icfg.LoadEnv(keys)
 	assert.Equal(t, "/opt/soft/go", cfg.String("GOROOT"))
 }
 
